@@ -1,27 +1,41 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-
-import com.acmerobotics.roadrunner.Pose2d;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 public class AutonomousDrive {
 
-    public AutonomousDrive(HardwareMap hardwareMap) {
-        this.hardwareMap = hardwareMap;
-        drive = new MecanumDrive(hardwareMap, zeroPose);
+    public AutonomousDrive(MecanumDrive drive) {
+        presetActions = new PresetActionThreads(drive);
     }
 
-    HardwareMap hardwareMap;
+    public PresetActionThreads presetActions;
 
-    private Pose2d zeroPose = new Pose2d(0,0,0);
-    private MecanumDrive drive;
+    public enum DRIVE_TYPES { TELEOPERATED, TELEOPERATED_AND_CANCEL_ALL_TASKS, AUTONOMOUS }
+    public static volatile DRIVE_TYPES ALLOWED_DRIVE_TYPE;
 
-    public void autonomousDrive(Gamepad gamepad1) {
+    public static boolean spinToggle = false;
 
-        if (gamepad1.a) {
+    public void autonomousDrive(GamepadBooleanHandling gbh) {
 
+        if (ALLOWED_DRIVE_TYPE == DRIVE_TYPES.TELEOPERATED_AND_CANCEL_ALL_TASKS) {
+            presetActions.cancelAll();
+            ALLOWED_DRIVE_TYPE = DRIVE_TYPES.TELEOPERATED;
+        }
+
+        if (gbh.cur_gamepad1a & !gbh.prev_gamepad1a) {
+
+            if (!spinToggle) {
+                ALLOWED_DRIVE_TYPE = DRIVE_TYPES.AUTONOMOUS;
+                presetActions.spin();
+            }
+            else {
+                ALLOWED_DRIVE_TYPE = DRIVE_TYPES.TELEOPERATED;
+                presetActions.spinCancel();
+            }
+
+            spinToggle = !spinToggle;
         }
     }
 

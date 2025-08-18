@@ -1,33 +1,57 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-public class MainDrive extends OpMode {
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-    private String ALLOWED_DRIVE_TYPE;
+@TeleOp (name = "MainDrive")
+public final class MainDrive extends LinearOpMode {
 
-    private DcMotorEx left_front, right_front, left_back, right_back;
-
-    private TeleOperatedDrive botDrive = new TeleOperatedDrive();
-    private AutonomousDrive autoDrive = new AutonomousDrive(hardwareMap);
 
     @Override
-    public void init() {
-        left_front = hardwareMap.get(DcMotorEx.class, "left_front");
-        right_front = hardwareMap.get(DcMotorEx.class, "right_front");
-        left_back = hardwareMap.get(DcMotorEx.class, "left_back");
-        right_back = hardwareMap.get(DcMotorEx.class, "right_back");
-    }
+    public void runOpMode() {
 
-    @Override
-    public void loop() {
+        Pose2d zeroPose = new Pose2d(0, 0, 0);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, zeroPose);
 
+        TeleOperatedDrive botDrive = new TeleOperatedDrive(gamepad1);
+        AutonomousDrive autoDrive = new AutonomousDrive(drive);
 
+        GamepadBooleanHandling gamepadBooleanHandler = new GamepadBooleanHandling(gamepad1, gamepad2);
 
-        if (ALLOWED_DRIVE_TYPE == "TELEOPERATED") {
-            botDrive.teleOperatedDrive(left_front, right_front, left_back, right_back, gamepad1);
+        DcMotor left_front, right_front, left_back, right_back;
+
+        left_front = hardwareMap.get(DcMotor.class, "lf");
+        right_front = hardwareMap.get(DcMotor.class, "rf");
+        left_back = hardwareMap.get(DcMotor.class, "lb");
+        right_back = hardwareMap.get(DcMotor.class, "rb");
+
+        left_front.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        left_back.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        right_back.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        right_front.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        left_front.setDirection(DcMotor.Direction.REVERSE);
+        left_back.setDirection(DcMotor.Direction.REVERSE);
+
+        if (isStopRequested()) return;
+        waitForStart();
+
+        while (opModeIsActive()) {
+
+            //handling gamepad booleans
+            gamepadBooleanHandler.handle();
+
+            //handling drive
+            autoDrive.autonomousDrive(gamepadBooleanHandler);
+            botDrive.teleOperatedDrive(left_front, right_front, left_back, right_back);
         }
-        else autoDrive.autonomousDrive(gamepad1);
+
+        autoDrive.presetActions.end();
+
     }
+
 }
