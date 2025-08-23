@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Drive;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+
 public class TeleOperatedDrive {
 
     private double driveLeftX_debugger;
@@ -15,6 +16,8 @@ public class TeleOperatedDrive {
     public TeleOperatedDrive(Gamepad gamepad1) {
         this.gamepad1 = gamepad1;
     }
+
+    private double[] kp = {1.0, 1.0};
 
     public void teleOperatedDrive(DcMotor left_front, DcMotor right_front, DcMotor left_back, DcMotor right_back) {
 
@@ -34,10 +37,10 @@ public class TeleOperatedDrive {
             AutonomousDrive.ALLOWED_DRIVE_TYPE = AutonomousDrive.DRIVE_TYPES.TELEOPERATED_AND_CANCEL_ALL_TASKS;
         }
 
-        left_front.setPower(driveLeftY_debugger - driveRightX_debugger - driveLeftX_debugger);
-        left_back.setPower(driveLeftY_debugger - driveRightX_debugger + driveLeftX_debugger);
-        right_front.setPower(driveLeftY_debugger + driveRightX_debugger + driveLeftX_debugger);
-        right_back.setPower(driveLeftY_debugger + driveRightX_debugger - driveLeftX_debugger);
+        left_front.setPower((driveLeftY_debugger - driveRightX_debugger - driveLeftX_debugger) * kp[0]);
+        left_back.setPower((driveLeftY_debugger - driveRightX_debugger + driveLeftX_debugger) * kp[0]);
+        right_front.setPower((driveLeftY_debugger + driveRightX_debugger + driveLeftX_debugger) * kp[1]);
+        right_back.setPower((driveLeftY_debugger + driveRightX_debugger - driveLeftX_debugger) * kp[1]);
     }
 
 }
